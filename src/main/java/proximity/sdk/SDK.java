@@ -365,6 +365,43 @@ public class SDK {
         });
     }
 
+    /**
+     * @param placeIds      ['123', 'asd', 'cc']
+     * @param callback      in case of 2xx, 4xx or 5xx response from server
+     * @param errorCallback in case of runtime error
+     */
+    public void checkInAtPlaces(final ArrayList<String> placeIds, final CheckInCallback callback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+        JSONObject body;
+
+        body = new JSONObject();
+        body.put("places", placeIds);
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/places/check-in"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(body);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                ArrayList<User> users;
+                users = new ArrayList<User>();
+
+                JSONArray usersNearbyAsJSONArray;
+                usersNearbyAsJSONArray = response.getBody().getJSONArray("usersNearby");
+
+                for (Object userAsJSONObject: usersNearbyAsJSONArray) {
+                    User user = User.fromJSONObject((JSONObject) userAsJSONObject);
+                    users.add(user);
+                }
+
+                callback.checkedIn(users);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                checkInAtPlaces(placeIds, callback, errorCallback);
+            }
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
@@ -379,6 +416,9 @@ public class SDK {
         public void runtime(Throwable exception);
     }
 
+    public interface CheckInCallback {
+        public void checkedIn(ArrayList<User> users);
+    }
     public interface SessionTokenRenewalCallback {
         public void renewed(Session session, RefreshToken refreshToken);
     }
