@@ -369,10 +369,42 @@ public class SDK {
         });
     }
 
+    /**
+     * @param callback      in case of 2xx, 4xx or 5xx response from server
+     * @param errorCallback in case of runtime error
+     */
+    public void leaveCurrentPlaces(final LeavePlacesCallback callback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/nearby-places/leave"));
+        request.setHeader("X-Authorization", this.sessionToken);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                callback.left();
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                leaveCurrentPlaces(callback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.runtime(e);
+            }
+        });
+    }
+
     public interface ErrorCallback {
         public void http(HttpException exception);
 
         public void runtime(Throwable exception);
+    }
+
+    public interface LeavePlacesCallback {
+        public void left();
     }
 
     public interface SessionTokenRenewalCallback {
