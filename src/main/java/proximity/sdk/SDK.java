@@ -17,18 +17,81 @@ public class SDK {
     private String sessionToken;
     private Client postman;
 
+    private String refreshToken;
+    private Boolean automaticTokenUpdate = false;
+    private SessionTokenRenewalCallback onTokenUpdateCallback;
+
+    /**
+     * @param host to work with
+     * @param sessionToken to identify a user
+     */
     public SDK(String host, String sessionToken) {
         this.host = host;
         this.sessionToken = sessionToken;
         this.postman = new Client();
     }
 
+    /**
+     * @param host to work with
+     */
     public SDK(String host) {
         this(host, null);
     }
 
+    /**
+     * @param postman http client
+     */
+    public void setPostman(Client postman) {
+        this.postman = postman;
+    }
+
+    /**
+     * @return whether an session token should be updated automatically in case of the "UNAUTHENTICATED"
+     */
+    public Boolean shouldUpdateTokenAutomatically() {
+        return automaticTokenUpdate;
+    }
+
+    /**
+     * @param automaticTokenUpdate whether an session token should be updated automatically in case of the "UNAUTHENTICATED"
+     */
+    public void setAutomaticTokenUpdate(Boolean automaticTokenUpdate) {
+        this.automaticTokenUpdate = automaticTokenUpdate;
+    }
+
+    /**
+     * @param sessionToken to identify a user
+     */
     public void setSessionToken(String sessionToken) {
         this.sessionToken = sessionToken;
+    }
+
+    /**
+     * @return a refresh token to update request an session token
+     */
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    /**
+     * @param refreshToken a refresh token to update request an session token
+     */
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    /**
+     * @return a callback that will be invoked when an session token is automatically updated
+     */
+    public SessionTokenRenewalCallback getOnTokenUpdateCallback() {
+        return onTokenUpdateCallback;
+    }
+
+    /**
+     * @param onTokenUpdateCallback a callback that will be invoked when an session token is automatically updated
+     */
+    public void setOnTokenUpdateCallback(SessionTokenRenewalCallback onTokenUpdateCallback) {
+        this.onTokenUpdateCallback = onTokenUpdateCallback;
     }
 
     /**
@@ -40,15 +103,21 @@ public class SDK {
     public void userInfo(final UserInfoCallback callback, final ErrorCallback errorCallback) {
         BodyLessRequest request;
 
+        // a request
         request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/user/me"));
         request.setHeader("X-Authorization", this.sessionToken);
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(errorCallback) {
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
                 User user = User.fromJSONObject(response.getBody().getJSONObject("user"));
 
                 callback.info(user);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                userInfo(callback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override
@@ -66,16 +135,20 @@ public class SDK {
      * @param errorCallback in case of runtime error
      */
     public void renewSessionToken(final String refreshToken, final SessionTokenRenewalCallback callback, final ErrorCallback errorCallback) {
+        ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
         JSONObject body;
 
+        // a request body
         body = new JSONObject();
         body.put("token", refreshToken);
 
+        // a request
         request = new JSONObjectRequest(JSONObjectRequest.Method.PATCH, this.castUrl("/session"));
         request.setBody(body);
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(errorCallback) {
+        // listener invoked after the server responded
+        listener = new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
                 Session session = new Session(
@@ -89,7 +162,11 @@ public class SDK {
 
                 callback.renewed(session, refreshToken);
             }
-        }, new Client.ErrorListener() {
+        };
+
+        listener.setTryUpdatingSessionToken(false);
+
+        this.postman.asJSONObjectAsync(request, listener, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
                 errorCallback.runtime(e);
@@ -98,23 +175,27 @@ public class SDK {
     }
 
     /**
-     * Sign in a user through the use of a google access token.
+     * Sign in a user through the use of a google session token.
      *
-     * @param token         google access token
+     * @param token         google session token
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
     public void signInViaGoogle(String token, final LoginCallback callback, final ErrorCallback errorCallback) {
+        ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
         JSONObject body;
 
+        // a request body
         body = new JSONObject();
         body.put("token", token);
 
+        // a request
         request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/sign-in/google"));
         request.setBody(body);
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(errorCallback) {
+        // listener invoked after the server responded
+        listener = new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
                 User user = User.fromJSONObject(response.getBody().getJSONObject("user"));
@@ -130,7 +211,11 @@ public class SDK {
 
                 callback.loggedIn(user, session, refreshToken);
             }
-        }, new Client.ErrorListener() {
+        };
+
+        listener.setTryUpdatingSessionToken(false);
+
+        this.postman.asJSONObjectAsync(request, listener, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
                 errorCallback.runtime(e);
@@ -139,13 +224,14 @@ public class SDK {
     }
 
     /**
-     * Register a user through the use of a google access token.
+     * Register a user through the use of a google session token.
      *
-     * @param token         google access token
+     * @param token         google session token
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
     public void registerViaGoogle(String token, final RegistrationCallback callback, final ErrorCallback errorCallback) {
+        ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
         JSONObject body;
 
@@ -155,7 +241,7 @@ public class SDK {
         request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/register/google"));
         request.setBody(body);
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(errorCallback) {
+        listener = new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
                 User user = User.fromJSONObject(response.getBody().getJSONObject("user"));
@@ -171,7 +257,10 @@ public class SDK {
 
                 callback.registered(user, session, refreshToken);
             }
-        }, new Client.ErrorListener() {
+        };
+        listener.setTryUpdatingSessionToken(false);
+
+        this.postman.asJSONObjectAsync(request, listener, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
                 errorCallback.runtime(e);
@@ -184,7 +273,7 @@ public class SDK {
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
-    public void updateAvatarBase64(String base64, final AvatarUpdateCallback callback, final ErrorCallback errorCallback) {
+    public void updateAvatarBase64(final String base64, final AvatarUpdateCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
 
@@ -195,12 +284,17 @@ public class SDK {
         request.setHeader("X-Authorization", this.sessionToken);
         request.setBody(body);
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(errorCallback) {
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
                 User user = User.fromJSONObject(response.getBody());
 
                 callback.updated(user);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                updateAvatarBase64(base64, callback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override
@@ -236,7 +330,7 @@ public class SDK {
             request.addField("types[]", type);
         }
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(errorCallback) {
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
                 ArrayList<Place> places = new ArrayList<Place>();
@@ -257,6 +351,11 @@ public class SDK {
                 }
 
                 callback.places(places);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                getNearbyPlaces(types, radius, location, callback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override
