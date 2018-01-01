@@ -18,7 +18,7 @@ public class SDK {
     private Client postman;
 
     private String refreshToken;
-    private Boolean automaticTokenUpdate = true;
+    private Boolean automaticTokenUpdate = false;
     private SessionTokenRenewalCallback onTokenUpdateCallback;
 
     /**
