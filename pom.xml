@@ -17,8 +17,8 @@
         <dependency>
             <groupId>postman</groupId>
             <artifactId>http-postman</artifactId>
-            <version>0.1.0-pre-alpha-1</version>
-            <systemPath>${project.basedir}/libs/http-postman-0.1.0-pre-alpha-1.jar</systemPath>
+            <version>0.1</version>
+            <systemPath>${project.basedir}/libs/http-postman-0.1.jar</systemPath>
             <scope>system</scope>
         </dependency>
 
