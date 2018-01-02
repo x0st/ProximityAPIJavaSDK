@@ -2,6 +2,7 @@ package proximity.sdk;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import postman.Client;
 import postman.PostmanException;
 import postman.request.BodyLessRequest;
@@ -22,7 +23,7 @@ public class SDK {
     private SessionTokenRenewalCallback onTokenUpdateCallback;
 
     /**
-     * @param host to work with
+     * @param host         to work with
      * @param sessionToken to identify a user
      */
     public SDK(String host, String sessionToken) {
@@ -269,6 +270,45 @@ public class SDK {
     }
 
     /**
+     * @param intent contains fields to be updated
+     * @param callback      in case of 2xx, 4xx or 5xx response from server
+     * @param errorCallback in case of runtime error
+     */
+    public void updateProfile(
+            final ProfileUpdateIntent intent,
+            final ProfileUpdateCallback callback,
+            final ErrorCallback errorCallback
+    ) {
+        JSONObjectRequest request;
+        JSONObject body;
+
+        body = intent.toJSONObject();
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.PATCH, this.castUrl("/user"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(body);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                User user = User.fromJSONObject(response.getBody().getJSONObject("user"));
+
+                callback.updatedProfile(user);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                updateProfile(intent, callback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.runtime(e);
+            }
+        });
+    }
+
+    /**
      * @param types         'cafe', 'restaurant'
      * @param radius        20
      * @param location      latitude and longitude
@@ -339,6 +379,10 @@ public class SDK {
         public void renewed(Session session, RefreshToken refreshToken);
     }
 
+    public interface ProfileUpdateCallback {
+        public void updatedProfile(User user);
+    }
+
     public interface NearbyPlacesCallback {
         public void places(ArrayList<Place> places);
     }
@@ -353,6 +397,37 @@ public class SDK {
 
     public interface RegistrationCallback {
         public void registered(User user, Session session, RefreshToken refreshToken);
+    }
+
+    public static class ProfileUpdateIntent {
+        private String avatarAsBase64;
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public String getAvatarAsBase64() {
+            return avatarAsBase64;
+        }
+
+        public void setAvatarAsBase64(String avatarAsBase64) {
+            this.avatarAsBase64 = avatarAsBase64;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public JSONObject toJSONObject() {
+            JSONObject jsonObject;
+            jsonObject = new JSONObject();
+
+            if (getName() != null) jsonObject.put("name", getName());
+            if (getAvatarAsBase64() != null) jsonObject.put("avatar_as_base64", getAvatarAsBase64());
+
+            return jsonObject;
+        }
     }
 
     private String castUrl(String path) {
