@@ -10,8 +10,18 @@ public class User {
     private String googleUserId;
     private String createdAt;
     private String updatedAt;
+    private Boolean confirmedProfile;
 
-    public User(Integer id, String name, String email, String avatar, String googleUserId, String createdAt, String updatedAt) {
+    public User(
+            Integer id,
+            String name,
+            String email,
+            String avatar,
+            String googleUserId,
+            String createdAt,
+            String updatedAt,
+            Boolean confirmedProfile
+    ) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -19,6 +29,7 @@ public class User {
         this.googleUserId = googleUserId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.confirmedProfile = confirmedProfile;
     }
 
     public Integer getId() {
@@ -49,6 +60,10 @@ public class User {
         return updatedAt;
     }
 
+    public Boolean confirmedProfile() {
+        return confirmedProfile;
+    }
+
     public static User fromJSONObject(JSONObject json) {
         return new User(
                 json.getInt("id"),
@@ -57,7 +72,8 @@ public class User {
                 String.valueOf(json.get("avatar")),
                 String.valueOf(json.get("google_user_id")),
                 json.getString("created_at"),
-                json.getString("updated_at")
+                json.getString("updated_at"),
+                json.getBoolean("confirmed_profile")
         );
     }
 }
