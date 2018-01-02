@@ -269,42 +269,6 @@ public class SDK {
     }
 
     /**
-     * @param base64        representation of an image
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
-    public void updateAvatarBase64(final String base64, final AvatarUpdateCallback callback, final ErrorCallback errorCallback) {
-        JSONObjectRequest request;
-        JSONObject body;
-
-        body = new JSONObject();
-        body.put("base64", base64);
-
-        request = new JSONObjectRequest(JSONObjectRequest.Method.PATCH, this.castUrl("/user/avatar/base64"));
-        request.setHeader("X-Authorization", this.sessionToken);
-        request.setBody(body);
-
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
-            @Override
-            public void handleSuccess(Response<JSONObject> response) {
-                User user = User.fromJSONObject(response.getBody());
-
-                callback.updated(user);
-            }
-
-            @Override
-            public void sessionTokenUpdated() {
-                updateAvatarBase64(base64, callback, errorCallback);
-            }
-        }, new Client.ErrorListener() {
-            @Override
-            public void exception(PostmanException e) {
-                errorCallback.runtime(e);
-            }
-        });
-    }
-
-    /**
      * @param types         'cafe', 'restaurant'
      * @param radius        20
      * @param location      latitude and longitude
@@ -377,10 +341,6 @@ public class SDK {
 
     public interface NearbyPlacesCallback {
         public void places(ArrayList<Place> places);
-    }
-
-    public interface AvatarUpdateCallback {
-        public void updated(User user);
     }
 
     public interface UserInfoCallback {
