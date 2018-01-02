@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import postman.response.Response;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ public class ValidatorErrorException extends HttpException {
     public ValidatorErrorException(String errorCode, Response<JSONObject> response) {
         super(errorCode, response);
 
+        this.errors = new HashMap<String, ArrayList<String>>();
         this.parseErrors(response);
     }
 
@@ -43,7 +45,7 @@ public class ValidatorErrorException extends HttpException {
             ArrayList<String> errors = new ArrayList<String>();
 
             for (int i = 0; i < fieldErrors.length(); i++) {
-                errors.add(fieldErrors.getJSONObject(i).toString());
+                errors.add(fieldErrors.getString(i));
             }
 
             this.errors.put(key, errors);
