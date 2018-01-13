@@ -340,8 +340,8 @@ public class SDK {
                 ArrayList<Place> places = new ArrayList<Place>();
                 JSONArray placesAsJSONArray = response.getBody().getJSONArray("places");
 
-                for (Object place : placesAsJSONArray) {
-                    JSONObject placeAsJSONObject = ((JSONObject) place);
+                for (int i = 0; i < placesAsJSONArray.length(); i++) {
+                    JSONObject placeAsJSONObject = placesAsJSONArray.getJSONObject(i);
 
                     Location location = new Location(
                             Double.valueOf(placeAsJSONObject.getJSONObject("location").getString("latitude")),
