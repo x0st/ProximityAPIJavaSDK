@@ -442,10 +442,53 @@ public class SDK {
         });
     }
 
+    /**
+     * @param callback      in case of 2xx, 4xx or 5xx response from server
+     * @param errorCallback in case of runtime error
+     */
+    public void showUsersNearby(final ShowUsersNearbyCallback callback, final ErrorCallback errorCallback) {
+        BodyLessRequest request;
+
+        request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/nearby-places/users-nearby"));
+        request.setHeader("X-Authorization", this.sessionToken);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                ArrayList<User> users;
+                JSONArray usersNearbyAsJSONArray;
+
+                users = new ArrayList<User>();
+                usersNearbyAsJSONArray = response.getBody().getJSONArray("users_nearby");
+
+                for (int i = 0; i < usersNearbyAsJSONArray.length(); i++) {
+                    User user = User.fromJSONObject((JSONObject) usersNearbyAsJSONArray.get(i));
+                    users.add(user);
+                }
+
+                callback.users(users);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                showUsersNearby(callback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.runtime(e);
+            }
+        });
+    }
+
     public interface ErrorCallback {
         public void http(HttpException exception);
 
         public void runtime(Throwable exception);
+    }
+
+    public interface ShowUsersNearbyCallback {
+        public void users(ArrayList<User> users);
     }
 
     public interface CheckInCallback {
