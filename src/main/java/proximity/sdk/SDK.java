@@ -481,10 +481,59 @@ public class SDK {
         });
     }
 
+    /**
+     * @param user user to be liked
+     * @param callback in case of success
+     * @param errorCallback in case of http or runtime error
+     */
+    public void likeUser(final User user, final LikeUserCallback callback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+        JSONObject body;
+
+        body = new JSONObject();
+        body.put("user_id", user.getId());
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/likes"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(body);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                ArrayList<User> users;
+                JSONArray usersNearbyAsJSONArray;
+
+                users = new ArrayList<User>();
+                usersNearbyAsJSONArray = response.getBody().getJSONArray("users_nearby");
+
+                for (int i = 0; i < usersNearbyAsJSONArray.length(); i++) {
+                    User user = User.fromJSONObject((JSONObject) usersNearbyAsJSONArray.get(i));
+                    users.add(user);
+                }
+
+                callback.users(users);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                likeUser(user, callback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.runtime(e);
+            }
+        });
+    }
+
     public interface ErrorCallback {
         public void http(HttpException exception);
 
         public void runtime(Throwable exception);
+    }
+
+    public interface LikeUserCallback {
+        public void users(ArrayList<User> users);
     }
 
     public interface ShowUsersNearbyCallback {
