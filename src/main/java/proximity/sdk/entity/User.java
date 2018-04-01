@@ -1,6 +1,10 @@
 package proximity.sdk.entity;
 
+import com.sun.istack.internal.Nullable;
+
 import org.json.JSONObject;
+
+import java.math.BigInteger;
 
 public class User {
     private Integer id;
@@ -8,9 +12,10 @@ public class User {
     private String email;
     private String avatar;
     private String googleUserId;
-    private String createdAt;
-    private String updatedAt;
+    private BigInteger createdAt;
+    private BigInteger updatedAt;
     private Boolean confirmedProfile;
+    private Boolean liked;
 
     public User(
             Integer id,
@@ -18,9 +23,10 @@ public class User {
             String email,
             String avatar,
             String googleUserId,
-            String createdAt,
-            String updatedAt,
-            Boolean confirmedProfile
+            BigInteger createdAt,
+            BigInteger updatedAt,
+            Boolean confirmedProfile,
+            Boolean liked
     ) {
         this.id = id;
         this.name = name;
@@ -30,6 +36,7 @@ public class User {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.confirmedProfile = confirmedProfile;
+        this.liked = liked;
     }
 
     public Integer getId() {
@@ -44,6 +51,7 @@ public class User {
         return email;
     }
 
+    @Nullable
     public String getAvatar() {
         return avatar;
     }
@@ -52,16 +60,22 @@ public class User {
         return googleUserId;
     }
 
-    public String getCreatedAt() {
+    public BigInteger getCreatedAt() {
         return createdAt;
     }
 
-    public String getUpdatedAt() {
+    @Nullable
+    public BigInteger getUpdatedAt() {
         return updatedAt;
     }
 
     public Boolean confirmedProfile() {
         return confirmedProfile;
+    }
+
+    @Nullable
+    public Boolean getLiked() {
+        return liked;
     }
 
     public static User fromJSONObject(JSONObject json) {
@@ -71,9 +85,10 @@ public class User {
                 String.valueOf(json.get("email")),
                 String.valueOf(json.get("avatar")),
                 String.valueOf(json.get("google_user_id")),
-                json.getString("created_at"),
-                json.getString("updated_at"),
-                json.getBoolean("confirmed_profile")
+                json.getBigInteger("created_at"),
+                json.isNull("updated_at") ? null : json.getBigInteger("updated_at"),
+                json.getBoolean("confirmed_profile"),
+                json.has("liked") ? json.getBoolean("liked") : null
         );
     }
 }
