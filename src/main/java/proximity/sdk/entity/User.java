@@ -1,7 +1,5 @@
 package proximity.sdk.entity;
 
-import com.sun.istack.internal.Nullable;
-
 import org.json.JSONObject;
 
 import java.math.BigInteger;
@@ -51,7 +49,6 @@ public class User {
         return email;
     }
 
-    @Nullable
     public String getAvatar() {
         return avatar;
     }
@@ -64,7 +61,6 @@ public class User {
         return createdAt;
     }
 
-    @Nullable
     public BigInteger getUpdatedAt() {
         return updatedAt;
     }
@@ -73,7 +69,6 @@ public class User {
         return confirmedProfile;
     }
 
-    @Nullable
     public Boolean getLiked() {
         return liked;
     }
