@@ -2,16 +2,13 @@ package proximity.sdk.entity;
 
 import org.json.JSONObject;
 
-import java.math.BigInteger;
-
 public class User {
     private Integer id;
     private String name;
     private String email;
     private String avatar;
     private String googleUserId;
-    private BigInteger createdAt;
-    private BigInteger updatedAt;
+    private long createdAt;
     private Boolean confirmedProfile;
     private Boolean liked;
 
@@ -21,8 +18,7 @@ public class User {
             String email,
             String avatar,
             String googleUserId,
-            BigInteger createdAt,
-            BigInteger updatedAt,
+            long createdAt,
             Boolean confirmedProfile,
             Boolean liked
     ) {
@@ -32,7 +28,6 @@ public class User {
         this.avatar = avatar;
         this.googleUserId = googleUserId;
         this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
         this.confirmedProfile = confirmedProfile;
         this.liked = liked;
     }
@@ -57,12 +52,8 @@ public class User {
         return googleUserId;
     }
 
-    public BigInteger getCreatedAt() {
+    public long getCreatedAt() {
         return createdAt;
-    }
-
-    public BigInteger getUpdatedAt() {
-        return updatedAt;
     }
 
     public Boolean confirmedProfile() {
@@ -80,8 +71,7 @@ public class User {
                 String.valueOf(json.get("email")),
                 String.valueOf(json.get("avatar")),
                 String.valueOf(json.get("google_user_id")),
-                json.getBigInteger("created_at"),
-                json.isNull("updated_at") ? null : json.getBigInteger("updated_at"),
+                json.getLong("created_at"),
                 json.getBoolean("confirmed_profile"),
                 json.has("liked") ? json.getBoolean("liked") : null
         );
