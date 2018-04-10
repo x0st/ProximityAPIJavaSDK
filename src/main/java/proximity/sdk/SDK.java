@@ -575,6 +575,51 @@ public class SDK {
     }
 
     /**
+     * Check if the user has left the places using their current location.
+     *
+     * @param accuracy
+     * @param latitude
+     * @param longitude
+     * @param successCallback
+     * @param errorCallback
+     */
+    public void hasLeftPlacesNearby(
+            final int accuracy,
+            final long latitude,
+            final long longitude,
+            final SuccessCallback successCallback,
+            final ErrorCallback errorCallback
+    ) {
+        BodyLessRequest request;
+
+        request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/nearby-places/has-left"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.addField("accuracy", String.valueOf(accuracy));
+        request.addField("latitude", String.valueOf(latitude));
+        request.addField("longitude", String.valueOf(longitude));
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                Boolean left = response.getBody().getBoolean("left");
+
+                successCallback.onSDKActionSuccess(Action.HAS_LEFT_PLACES, left);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                hasLeftPlacesNearby(accuracy, latitude, longitude, successCallback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.runtime(e);
+            }
+        });
+
+    }
+
+    /**
      * Callback to receive successful response from server.
      */
     public interface SuccessCallback {
