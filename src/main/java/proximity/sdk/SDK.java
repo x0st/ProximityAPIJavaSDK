@@ -344,10 +344,7 @@ public class SDK {
         request.addField("latitude", String.valueOf(location.getLatitude()));
         request.addField("longitude", String.valueOf(location.getLongitude()));
         request.addField("radius", radius.toString());
-
-        for (String type : types) {
-            request.addField("types[]", type);
-        }
+        request.addArray("types", types);
 
         this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
