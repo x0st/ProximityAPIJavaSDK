@@ -22,6 +22,21 @@ public class SDK {
     private Boolean automaticTokenUpdate = false;
     private SessionTokenRenewalCallback onTokenUpdateCallback;
 
+    public enum Action {
+        USER_INFO,
+        RENEW_SESSION_TOKEN,
+        SIGN_IN_VIA_GOOGLE,
+        SIGN_UP_VIA_GOOGLE,
+        UPDATE_PROFILE,
+        GET_NEARBY_PLACES,
+        LEAVE_CURRENT_PLACES,
+        CHECK_IN_AT_PLACES,
+        SHOW_USERS_NEARBY,
+        LIKE_USER,
+        ADD_FCM_TOKEN,
+        HAS_LEFT_PLACES
+    }
+
     /**
      * @param host         to work with
      * @param sessionToken to identify a user
@@ -526,6 +541,52 @@ public class SDK {
         });
     }
 
+    /**
+     * Put the user firebase cloud messaging token into the DB on the server.
+     *
+     * @param token
+     * @param successCallback
+     * @param errorCallback
+     */
+    public void addFCMToken(final String token, final SuccessCallback successCallback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+        JSONObject body;
+
+        body = new JSONObject();
+        body.put("token", token);
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/android-fcm-tokens"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(body);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                successCallback.onSDKActionSuccess(SDK.Action.ADD_FCM_TOKEN);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                addFCMToken(token, successCallback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.runtime(e);
+            }
+        });
+    }
+
+    /**
+     * Callback to receive successful response from server.
+     */
+    public interface SuccessCallback {
+        public void onSDKActionSuccess(Action action, Object ...params);
+    }
+
+    /**
+     * Callback for exceptions, bad responses from server, 40x/50x codes.
+     */
     public interface ErrorCallback {
         public void http(HttpException exception);
 
