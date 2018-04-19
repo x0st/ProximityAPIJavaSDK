@@ -64,6 +64,10 @@ public class User {
         return liked;
     }
 
+    public void setLiked(Boolean value) {
+        liked = value;
+    }
+
     public static User fromJSONObject(JSONObject json) {
         return new User(
                 json.getInt("id"),

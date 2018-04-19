@@ -17,6 +17,11 @@ public class Place {
     private String placeId;
 
     /**
+     * Indicates if the user is currently at this place.
+     */
+    private Boolean isHere;
+
+    /**
      * Coordinates of the place.
      */
     private Location location;
@@ -27,10 +32,11 @@ public class Place {
      * @param placeId google place id
      * @param location coordinates
      */
-    public Place(String name, String address, String placeId, Location location) {
+    public Place(String name, String address, String placeId, Boolean isHere, Location location) {
         this.name = name;
         this.address = address;
         this.placeId = placeId;
+        this.isHere = isHere;
         this.location = location;
     }
 
@@ -60,6 +66,20 @@ public class Place {
      */
     public Location getLocation() {
         return location;
+    }
+
+    /**
+     * Update the isHere field.
+     */
+    public void setIsHere(Boolean here) {
+        isHere = here;
+    }
+
+    /**
+     * Indicates if the user is currently at this place.
+     */
+    public Boolean getIsHere() {
+        return isHere;
     }
 
     @Override

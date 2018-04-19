@@ -31,7 +31,7 @@ public class SDK {
         GET_NEARBY_PLACES,
         LEAVE_CURRENT_PLACES,
         CHECK_IN_AT_PLACES,
-        SHOW_USERS_NEARBY,
+        GET_NEARBY_USERS,
         LIKE_USER,
         ADD_FCM_TOKEN,
         HAS_LEFT_PLACES
@@ -138,7 +138,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -185,7 +185,7 @@ public class SDK {
         this.postman.asJSONObjectAsync(request, listener, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -234,7 +234,7 @@ public class SDK {
         this.postman.asJSONObjectAsync(request, listener, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -279,7 +279,7 @@ public class SDK {
         this.postman.asJSONObjectAsync(request, listener, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -318,7 +318,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -334,7 +334,7 @@ public class SDK {
             final ArrayList<String> types,
             final Integer radius,
             final Location location,
-            final NearbyPlacesCallback callback,
+            final SuccessCallback callback,
             final ErrorCallback errorCallback
     ) {
         BodyLessRequest request;
@@ -359,14 +359,15 @@ public class SDK {
                             Double.valueOf(placeAsJSONObject.getJSONObject("location").getString("latitude")),
                             Double.valueOf(placeAsJSONObject.getJSONObject("location").getString("longitude"))
                     );
+                    Boolean isHere = placeAsJSONObject.getBoolean("is_here");
                     String address = placeAsJSONObject.getString("address");
-                    String placeId = placeAsJSONObject.getString("placeId");
+                    String placeId = placeAsJSONObject.getString("place_id");
                     String name = placeAsJSONObject.getString("name");
 
-                    places.add(new Place(name, address, placeId, location));
+                    places.add(new Place(name, address, placeId, isHere, location));
                 }
 
-                callback.places(places);
+                callback.onSDKActionSuccess(Action.GET_NEARBY_PLACES, places);
             }
 
             @Override
@@ -376,7 +377,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -385,16 +386,17 @@ public class SDK {
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
-    public void leaveCurrentPlaces(final LeavePlacesCallback callback, final ErrorCallback errorCallback) {
+    public void leaveCurrentPlaces(final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
 
         request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/nearby-places/leave"));
         request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(new JSONObject());
 
         this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
-                callback.left();
+                callback.onSDKActionSuccess(Action.LEAVE_CURRENT_PLACES);
             }
 
             @Override
@@ -404,7 +406,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -414,7 +416,7 @@ public class SDK {
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
-    public void checkInAtPlaces(final ArrayList<String> placeIds, final CheckInCallback callback, final ErrorCallback errorCallback) {
+    public void checkInAtPlaces(final ArrayList<String> placeIds, final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
 
@@ -439,7 +441,7 @@ public class SDK {
                     users.add(user);
                 }
 
-                callback.checkedIn(users);
+                callback.onSDKActionSuccess(Action.CHECK_IN_AT_PLACES, users);
             }
 
             @Override
@@ -449,7 +451,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -458,7 +460,7 @@ public class SDK {
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
-    public void showUsersNearby(final ShowUsersNearbyCallback callback, final ErrorCallback errorCallback) {
+    public void getNearbyUsers(final SuccessCallback callback, final ErrorCallback errorCallback) {
         BodyLessRequest request;
 
         request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/nearby-places/users-nearby"));
@@ -478,17 +480,17 @@ public class SDK {
                     users.add(user);
                 }
 
-                callback.users(users);
+                callback.onSDKActionSuccess(Action.GET_NEARBY_USERS, users);
             }
 
             @Override
             public void sessionTokenUpdated() {
-                showUsersNearby(callback, errorCallback);
+                getNearbyUsers(callback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -498,7 +500,7 @@ public class SDK {
      * @param callback in case of success
      * @param errorCallback in case of http or runtime error
      */
-    public void likeUser(final User user, final LikeUserCallback callback, final ErrorCallback errorCallback) {
+    public void likeUser(final User user, final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
 
@@ -523,7 +525,7 @@ public class SDK {
                     users.add(user);
                 }
 
-                callback.users(users);
+                callback.onSDKActionSuccess(Action.LIKE_USER, users);
             }
 
             @Override
@@ -533,7 +535,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -569,7 +571,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
     }
@@ -613,7 +615,7 @@ public class SDK {
         }, new Client.ErrorListener() {
             @Override
             public void exception(PostmanException e) {
-                errorCallback.runtime(e);
+                errorCallback.exception(e);
             }
         });
 
@@ -630,9 +632,7 @@ public class SDK {
      * Callback for exceptions, bad responses from server, 40x/50x codes.
      */
     public interface ErrorCallback {
-        public void http(HttpException exception);
-
-        public void runtime(Throwable exception);
+        public void exception(Throwable exception);
     }
 
     public interface LikeUserCallback {
@@ -645,10 +645,6 @@ public class SDK {
 
     public interface CheckInCallback {
         public void checkedIn(ArrayList<User> users);
-    }
-
-    public interface LeavePlacesCallback {
-        public void left();
     }
 
     public interface SessionTokenRenewalCallback {

@@ -56,7 +56,7 @@ abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONO
         try {
             this.handleSuccess(response);
         } catch (Throwable exception) {
-            this.errorCallback.runtime(exception);
+            this.errorCallback.exception(exception);
         }
     }
 
@@ -83,13 +83,8 @@ abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONO
             }
         }, new SDK.ErrorCallback() {
             @Override
-            public void http(HttpException exception) {
-                errorCallback.http(exception);
-            }
-
-            @Override
-            public void runtime(Throwable exception) {
-                errorCallback.runtime(exception);
+            public void exception(Throwable exception) {
+                errorCallback.exception(exception);
             }
         });
     }
@@ -125,9 +120,9 @@ abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONO
                 exception = new HttpException(errorCode, response);
             }
 
-            errorCallback.http(exception);
+            errorCallback.exception(exception);
         } catch (Throwable e) {
-            errorCallback.runtime(e);
+            errorCallback.exception(e);
         }
     }
 }
