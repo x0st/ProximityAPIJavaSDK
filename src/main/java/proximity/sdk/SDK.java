@@ -12,6 +12,7 @@ import proximity.sdk.entity.*;
 import proximity.sdk.exception.HttpException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SDK {
     private String host;
@@ -34,7 +35,8 @@ public class SDK {
         GET_NEARBY_USERS,
         LIKE_USER,
         ADD_FCM_TOKEN,
-        HAS_LEFT_PLACES
+        HAS_LEFT_PLACES,
+        PUSH_WIFI_NETWORKS
     }
 
     /**
@@ -622,7 +624,71 @@ public class SDK {
     }
 
     /**
-     * Callback to receive successful response from server.
+     *
+     * @param location
+     * @param locationAccuracy
+     * @param networks
+     * @param successCallback
+     * @param errorCallback
+     */
+    public void pushWiFiNetworks(
+            final Location location,
+            final int locationAccuracy,
+            final List<WiFiNetwork> networks,
+            final SuccessCallback successCallback,
+            final ErrorCallback errorCallback
+    ) {
+        JSONObjectRequest request;
+        JSONObject body;
+        JSONObject locationAsJSON;
+        JSONArray networksAsJSONArray;
+        JSONObject networkAsJSON;
+
+        locationAsJSON = new JSONObject();
+        locationAsJSON.put("latitude", location.getLatitude());
+        locationAsJSON.put("longitude", location.getLongitude());
+        locationAsJSON.put("accuracy", locationAccuracy);
+
+        networksAsJSONArray = new JSONArray();
+
+        for (int i = 0; i < networks.size(); i++) {
+            networkAsJSON = new JSONObject();
+
+            networkAsJSON.put("SSID", networks.get(i).getSSID());
+            networkAsJSON.put("BSSID", networks.get(i).getBSSID());
+            networkAsJSON.put("signal", networks.get(i).getSignal());
+
+            networksAsJSONArray.put(networkAsJSON);
+        }
+
+        body = new JSONObject();
+        body.put("location", locationAsJSON);
+        body.put("networks", networksAsJSONArray);
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/wifi-networks"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(body);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                successCallback.onSDKActionSuccess(Action.PUSH_WIFI_NETWORKS);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                pushWiFiNetworks(location, locationAccuracy, networks, successCallback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.exception(e);
+            }
+        });
+    }
+
+    /**
+     * Callback for successful response from server.
      */
     public interface SuccessCallback {
         public void onSDKActionSuccess(Action action, Object ...params);
