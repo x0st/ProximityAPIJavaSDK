@@ -36,7 +36,8 @@ public class SDK {
         LIKE_USER,
         ADD_FCM_TOKEN,
         HAS_LEFT_PLACES,
-        PUSH_WIFI_NETWORKS
+        PUSH_WIFI_NETWORKS,
+        CONFIRM_CHECK_IN
     }
 
     /**
@@ -449,6 +450,37 @@ public class SDK {
             @Override
             public void sessionTokenUpdated() {
                 checkInAtPlaces(placeIds, callback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.exception(e);
+            }
+        });
+    }
+
+    /**
+     * Confirm current user location.
+     *
+     * @param callback
+     * @param errorCallback
+     */
+    public void confirmCheckIn(final SuccessCallback callback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/nearby-places/check-in/confirm"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(new JSONObject());
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                callback.onSDKActionSuccess(Action.CONFIRM_CHECK_IN);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                confirmCheckIn(callback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override

@@ -7,6 +7,7 @@ import proximity.sdk.entity.RefreshToken;
 import proximity.sdk.entity.Session;
 import proximity.sdk.exception.HttpException;
 import proximity.sdk.exception.UnathenticatedErrorException;
+import proximity.sdk.exception.UserNotAtPlacesException;
 import proximity.sdk.exception.ValidatorErrorException;
 
 abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONObject> {
@@ -44,6 +45,15 @@ abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONO
      */
     private boolean isUnauthenticatedError(Response<JSONObject> response) {
         return response.getBody().getString("error").equals("UNAUTHENTICATED");
+    }
+
+    /**
+     *
+     * @param response server response
+     * @return
+     */
+    private boolean isUserNotAtPlacesError(Response<JSONObject> response) {
+        return response.getBody().getString("error").equals("NOT_AT_PLACES");
     }
 
     /**
@@ -109,6 +119,8 @@ abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONO
 
             if (isValidationError(response)) {
                 exception = new ValidatorErrorException(errorCode, response);
+            } else if (isUserNotAtPlacesError(response)) {
+                exception = new UserNotAtPlacesException(errorCode, response);
             } else if (isUnauthenticatedError(response)) {
                 if (sdk.shouldUpdateTokenAutomatically() && tryUpdatingSessionToken) {
                     this.requestNewSessionToken();
