@@ -119,7 +119,7 @@ public class SDK {
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
-    public void userInfo(final UserInfoCallback callback, final ErrorCallback errorCallback) {
+    public void userInfo(final SuccessCallback callback, final ErrorCallback errorCallback) {
         BodyLessRequest request;
 
         // a request
@@ -131,7 +131,7 @@ public class SDK {
             public void handleSuccess(Response<JSONObject> response) {
                 User user = User.fromJSONObject(response.getBody().getJSONObject("user"));
 
-                callback.info(user);
+                callback.onSDKActionSuccess(Action.USER_INFO, user);
             }
 
             @Override
@@ -200,7 +200,7 @@ public class SDK {
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
-    public void signInViaGoogle(String token, final LoginCallback callback, final ErrorCallback errorCallback) {
+    public void signInViaGoogle(String token, final SuccessCallback callback, final ErrorCallback errorCallback) {
         ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
         JSONObject body;
@@ -228,7 +228,7 @@ public class SDK {
                         response.getBody().getString("refresh_token")
                 );
 
-                callback.loggedIn(user, session, refreshToken);
+                callback.onSDKActionSuccess(Action.SIGN_IN_VIA_GOOGLE, user, session, refreshToken);
             }
         };
 
@@ -249,7 +249,7 @@ public class SDK {
      * @param callback      in case of 2xx, 4xx or 5xx response from server
      * @param errorCallback in case of runtime error
      */
-    public void registerViaGoogle(String token, final RegistrationCallback callback, final ErrorCallback errorCallback) {
+    public void registerViaGoogle(String token, final SuccessCallback callback, final ErrorCallback errorCallback) {
         ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
         JSONObject body;
@@ -274,9 +274,10 @@ public class SDK {
                         response.getBody().getString("refresh_token")
                 );
 
-                callback.registered(user, session, refreshToken);
+                callback.onSDKActionSuccess(Action.SIGN_UP_VIA_GOOGLE, user, session, refreshToken);
             }
         };
+
         listener.setTryUpdatingSessionToken(false);
 
         this.postman.asJSONObjectAsync(request, listener, new Client.ErrorListener() {
@@ -294,7 +295,7 @@ public class SDK {
      */
     public void updateProfile(
             final ProfileUpdateIntent intent,
-            final ProfileUpdateCallback callback,
+            final SuccessCallback callback,
             final ErrorCallback errorCallback
     ) {
         JSONObjectRequest request;
@@ -311,7 +312,7 @@ public class SDK {
             public void handleSuccess(Response<JSONObject> response) {
                 User user = User.fromJSONObject(response.getBody().getJSONObject("user"));
 
-                callback.updatedProfile(user);
+                callback.onSDKActionSuccess(Action.UPDATE_PROFILE, user);
             }
 
             @Override
@@ -548,18 +549,9 @@ public class SDK {
         this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
-                ArrayList<User> users;
-                JSONArray usersNearbyAsJSONArray;
+                Integer userId = response.getBody().getInt("user_id");
 
-                users = new ArrayList<User>();
-                usersNearbyAsJSONArray = response.getBody().getJSONArray("users_nearby");
-
-                for (int i = 0; i < usersNearbyAsJSONArray.length(); i++) {
-                    User user = User.fromJSONObject((JSONObject) usersNearbyAsJSONArray.get(i));
-                    users.add(user);
-                }
-
-                callback.onSDKActionSuccess(Action.LIKE_USER, users);
+                callback.onSDKActionSuccess(Action.LIKE_USER, userId);
             }
 
             @Override
@@ -733,40 +725,8 @@ public class SDK {
         public void exception(Throwable exception);
     }
 
-    public interface LikeUserCallback {
-        public void users(ArrayList<User> users);
-    }
-
-    public interface ShowUsersNearbyCallback {
-        public void users(ArrayList<User> users);
-    }
-
-    public interface CheckInCallback {
-        public void checkedIn(ArrayList<User> users);
-    }
-
     public interface SessionTokenRenewalCallback {
         public void renewed(Session session, RefreshToken refreshToken);
-    }
-
-    public interface ProfileUpdateCallback {
-        public void updatedProfile(User user);
-    }
-
-    public interface NearbyPlacesCallback {
-        public void places(ArrayList<Place> places);
-    }
-
-    public interface UserInfoCallback {
-        public void info(User user);
-    }
-
-    public interface LoginCallback {
-        public void loggedIn(User user, Session session, RefreshToken refreshToken);
-    }
-
-    public interface RegistrationCallback {
-        public void registered(User user, Session session, RefreshToken refreshToken);
     }
 
     public static class ProfileUpdateIntent {
