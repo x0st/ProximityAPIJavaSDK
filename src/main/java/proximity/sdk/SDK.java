@@ -535,12 +535,13 @@ public class SDK {
      * @param callback in case of success
      * @param errorCallback in case of http or runtime error
      */
-    public void likeUser(final User user, final SuccessCallback callback, final ErrorCallback errorCallback) {
+    public void likeUser(final User user, final int likeType, final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
 
         body = new JSONObject();
         body.put("user_id", user.getId());
+        body.put("type", likeType);
 
         request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/likes"));
         request.setHeader("X-Authorization", this.sessionToken);
@@ -556,7 +557,7 @@ public class SDK {
 
             @Override
             public void sessionTokenUpdated() {
-                likeUser(user, callback, errorCallback);
+                likeUser(user, likeType, callback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override
