@@ -37,88 +37,50 @@ public class SDK {
         ADD_FCM_TOKEN,
         HAS_LEFT_PLACES,
         PUSH_WIFI_NETWORKS,
-        CONFIRM_CHECK_IN
+        CONFIRM_CHECK_IN,
+        REVOKE_FCM_TOKEN,
+        REVOKE_SESSION_TOKEN,
+        SEND_SIGNAL
     }
 
-    /**
-     * @param host         to work with
-     * @param sessionToken to identify a user
-     */
-    public SDK(String host, String sessionToken) {
-        this.host = host;
-        this.sessionToken = sessionToken;
-        this.postman = new Client();
+    public SDK(String hostValue, String sessionTokenValue) {
+        host = hostValue;
+        sessionToken = sessionTokenValue;
+        postman = new Client();
     }
 
-    /**
-     * @param host to work with
-     */
     public SDK(String host) {
         this(host, null);
     }
 
-    /**
-     * @param postman http client
-     */
-    public void setPostman(Client postman) {
-        this.postman = postman;
-    }
-
-    /**
-     * @return whether an session token should be updated automatically in case of the "UNAUTHENTICATED"
-     */
     public Boolean shouldUpdateTokenAutomatically() {
         return automaticTokenUpdate;
     }
 
-    /**
-     * @param automaticTokenUpdate whether an session token should be updated automatically in case of the "UNAUTHENTICATED"
-     */
-    public void setAutomaticTokenUpdate(Boolean automaticTokenUpdate) {
-        this.automaticTokenUpdate = automaticTokenUpdate;
+    public void setAutomaticTokenUpdate(Boolean value) {
+        automaticTokenUpdate = value;
     }
 
-    /**
-     * @param sessionToken to identify a user
-     */
-    public void setSessionToken(String sessionToken) {
-        this.sessionToken = sessionToken;
+    public void setSessionToken(String value) {
+        sessionToken = value;
     }
 
-    /**
-     * @return a refresh token to update request an session token
-     */
     public String getRefreshToken() {
         return refreshToken;
     }
 
-    /**
-     * @param refreshToken a refresh token to update request an session token
-     */
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
+    public void setRefreshToken(String value) {
+        refreshToken = value;
     }
 
-    /**
-     * @return a callback that will be invoked when an session token is automatically updated
-     */
     public SessionTokenRenewalCallback getOnTokenUpdateCallback() {
         return onTokenUpdateCallback;
     }
 
-    /**
-     * @param onTokenUpdateCallback a callback that will be invoked when an session token is automatically updated
-     */
-    public void setOnTokenUpdateCallback(SessionTokenRenewalCallback onTokenUpdateCallback) {
-        this.onTokenUpdateCallback = onTokenUpdateCallback;
+    public void setOnTokenUpdateCallback(SessionTokenRenewalCallback value) {
+        onTokenUpdateCallback = value;
     }
 
-    /**
-     * Get information about the owner of session token.
-     *
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
     public void userInfo(final SuccessCallback callback, final ErrorCallback errorCallback) {
         BodyLessRequest request;
 
@@ -146,13 +108,6 @@ public class SDK {
         });
     }
 
-    /**
-     * To renew session token if current one has expired.
-     *
-     * @param refreshToken  which will be used to produce a new session token
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
     public void renewSessionToken(final String refreshToken, final SessionTokenRenewalCallback callback, final ErrorCallback errorCallback) {
         ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
@@ -193,13 +148,6 @@ public class SDK {
         });
     }
 
-    /**
-     * Sign in a user through the use of a google session token.
-     *
-     * @param token         google session token
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
     public void signInViaGoogle(String token, final SuccessCallback callback, final ErrorCallback errorCallback) {
         ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
@@ -242,13 +190,6 @@ public class SDK {
         });
     }
 
-    /**
-     * Register a user through the use of a google session token.
-     *
-     * @param token         google session token
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
     public void registerViaGoogle(String token, final SuccessCallback callback, final ErrorCallback errorCallback) {
         ListenerJSONObjectAdapter listener;
         JSONObjectRequest request;
@@ -288,16 +229,7 @@ public class SDK {
         });
     }
 
-    /**
-     * @param intent contains fields to be updated
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
-    public void updateProfile(
-            final ProfileUpdateIntent intent,
-            final SuccessCallback callback,
-            final ErrorCallback errorCallback
-    ) {
+    public void updateProfile(final ProfileUpdateIntent intent, final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
 
@@ -327,20 +259,7 @@ public class SDK {
         });
     }
 
-    /**
-     * @param types         'cafe', 'restaurant'
-     * @param radius        20
-     * @param location      latitude and longitude
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
-    public void getNearbyPlaces(
-            final ArrayList<String> types,
-            final Integer radius,
-            final Location location,
-            final SuccessCallback callback,
-            final ErrorCallback errorCallback
-    ) {
+    public void getNearbyPlaces(final ArrayList<String> types, final Integer radius, final Location location, final SuccessCallback callback, final ErrorCallback errorCallback) {
         BodyLessRequest request;
 
         request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/nearby-places"));
@@ -386,10 +305,6 @@ public class SDK {
         });
     }
 
-    /**
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
     public void leaveCurrentPlaces(final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
 
@@ -415,11 +330,6 @@ public class SDK {
         });
     }
 
-    /**
-     * @param placeIds      ['123', 'asd', 'cc']
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
     public void checkInAtPlaces(final ArrayList<String> placeIds, final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
@@ -460,12 +370,6 @@ public class SDK {
         });
     }
 
-    /**
-     * Confirm current user location.
-     *
-     * @param callback
-     * @param errorCallback
-     */
     public void confirmCheckIn(final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
 
@@ -491,10 +395,6 @@ public class SDK {
         });
     }
 
-    /**
-     * @param callback      in case of 2xx, 4xx or 5xx response from server
-     * @param errorCallback in case of runtime error
-     */
     public void getNearbyUsers(final SuccessCallback callback, final ErrorCallback errorCallback) {
         BodyLessRequest request;
 
@@ -530,11 +430,6 @@ public class SDK {
         });
     }
 
-    /**
-     * @param user user to be liked
-     * @param callback in case of success
-     * @param errorCallback in case of http or runtime error
-     */
     public void likeUser(final User user, final int likeType, final SuccessCallback callback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
@@ -567,13 +462,56 @@ public class SDK {
         });
     }
 
-    /**
-     * Put the user firebase cloud messaging token into the DB on the server.
-     *
-     * @param token
-     * @param successCallback
-     * @param errorCallback
-     */
+    public void revokeSessionToken(final SuccessCallback successCallback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.DELETE, this.castUrl("/session"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(new JSONObject());
+
+        postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                successCallback.onSDKActionSuccess(Action.REVOKE_SESSION_TOKEN);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                revokeSessionToken(successCallback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.exception(e);
+            }
+        });
+    }
+
+    public void revokeFCMToken(final SuccessCallback successCallback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.DELETE, this.castUrl("/android-fcm-tokens"));
+        request.setHeader("X-Authorization", this.sessionToken);
+        request.setBody(new JSONObject());
+
+        postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                successCallback.onSDKActionSuccess(Action.REVOKE_FCM_TOKEN);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                revokeFCMToken(successCallback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.exception(e);
+            }
+        });
+    }
+
     public void addFCMToken(final String token, final SuccessCallback successCallback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
@@ -585,7 +523,7 @@ public class SDK {
         request.setHeader("X-Authorization", this.sessionToken);
         request.setBody(body);
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+        postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
                 successCallback.onSDKActionSuccess(SDK.Action.ADD_FCM_TOKEN);
@@ -603,41 +541,27 @@ public class SDK {
         });
     }
 
-    /**
-     * Check if the user has left the places using their current location.
-     *
-     * @param accuracy
-     * @param latitude
-     * @param longitude
-     * @param successCallback
-     * @param errorCallback
-     */
-    public void hasLeftPlacesNearby(
-            final int accuracy,
-            final long latitude,
-            final long longitude,
-            final SuccessCallback successCallback,
-            final ErrorCallback errorCallback
-    ) {
-        BodyLessRequest request;
+    public void sendSignal(final User user, final String payload, final SuccessCallback successCallback, final ErrorCallback errorCallback) {
+        JSONObjectRequest request;
+        JSONObject body;
 
-        request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/nearby-places/has-left"));
+        body = new JSONObject();
+        body.put("user_id", user.getId());
+        body.put("payload", payload);
+
+        request = new JSONObjectRequest(JSONObjectRequest.Method.POST, this.castUrl("/signals"));
         request.setHeader("X-Authorization", this.sessionToken);
-        request.addField("accuracy", String.valueOf(accuracy));
-        request.addField("latitude", String.valueOf(latitude));
-        request.addField("longitude", String.valueOf(longitude));
+        request.setBody(body);
 
-        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+        postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
-                Boolean left = response.getBody().getBoolean("left");
-
-                successCallback.onSDKActionSuccess(Action.HAS_LEFT_PLACES, left);
+                successCallback.onSDKActionSuccess(Action.SEND_SIGNAL);
             }
 
             @Override
             public void sessionTokenUpdated() {
-                hasLeftPlacesNearby(accuracy, latitude, longitude, successCallback, errorCallback);
+                sendSignal(user, payload, successCallback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override
@@ -645,24 +569,9 @@ public class SDK {
                 errorCallback.exception(e);
             }
         });
-
     }
 
-    /**
-     *
-     * @param location
-     * @param locationAccuracy
-     * @param networks
-     * @param successCallback
-     * @param errorCallback
-     */
-    public void pushWiFiNetworks(
-            final Location location,
-            final int locationAccuracy,
-            final List<WiFiNetwork> networks,
-            final SuccessCallback successCallback,
-            final ErrorCallback errorCallback
-    ) {
+    public void pushWiFiNetworks(final Location location, final int locationAccuracy, final List<WiFiNetwork> networks, final SuccessCallback successCallback, final ErrorCallback errorCallback) {
         JSONObjectRequest request;
         JSONObject body;
         JSONObject locationAsJSON;
@@ -712,16 +621,10 @@ public class SDK {
         });
     }
 
-    /**
-     * Callback for successful response from server.
-     */
     public interface SuccessCallback {
         public void onSDKActionSuccess(Action action, Object ...params);
     }
 
-    /**
-     * Callback for exceptions, bad responses from server, 40x/50x codes.
-     */
     public interface ErrorCallback {
         public void exception(Throwable exception);
     }
@@ -732,6 +635,7 @@ public class SDK {
 
     public static class ProfileUpdateIntent {
         private String avatarAsBase64;
+        private Integer gender;
         private String name;
 
         public String getName() {
@@ -742,12 +646,20 @@ public class SDK {
             return avatarAsBase64;
         }
 
-        public void setAvatarAsBase64(String avatarAsBase64) {
-            this.avatarAsBase64 = avatarAsBase64;
+        public Integer getGender() {
+            return gender;
         }
 
-        public void setName(String name) {
-            this.name = name;
+        public void setAvatarAsBase64(String value) {
+            avatarAsBase64 = value;
+        }
+
+        public void setName(String value) {
+            name = value;
+        }
+
+        public void setGender(Integer value) {
+            gender = value;
         }
 
         public JSONObject toJSONObject() {
@@ -755,6 +667,7 @@ public class SDK {
             jsonObject = new JSONObject();
 
             if (getName() != null) jsonObject.put("name", getName());
+            if (getGender() != null) jsonObject.put("gender", getGender());
             if (getAvatarAsBase64() != null) jsonObject.put("avatar_as_base64", getAvatarAsBase64());
 
             return jsonObject;
