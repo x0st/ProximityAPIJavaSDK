@@ -556,7 +556,7 @@ public class SDK {
         postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override
             public void handleSuccess(Response<JSONObject> response) {
-                successCallback.onSDKActionSuccess(Action.SEND_SIGNAL);
+                successCallback.onSDKActionSuccess(Action.SEND_SIGNAL, user);
             }
 
             @Override
