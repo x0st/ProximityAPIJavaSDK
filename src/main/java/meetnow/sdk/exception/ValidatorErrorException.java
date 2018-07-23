@@ -1,4 +1,4 @@
-package proximity.sdk.exception;
+package meetnow.sdk.exception;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

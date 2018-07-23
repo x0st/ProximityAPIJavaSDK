@@ -1,4 +1,4 @@
-package proximity.sdk.entity;
+package meetnow.sdk.entity;
 
 public class Session {
     private String token;

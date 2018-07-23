@@ -1,4 +1,4 @@
-package proximity.sdk.entity;
+package meetnow.sdk.entity;
 
 public class RefreshToken {
     private String token;

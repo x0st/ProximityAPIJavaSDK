@@ -1,4 +1,4 @@
-package proximity.sdk;
+package meetnow.sdk;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -8,8 +8,8 @@ import postman.PostmanException;
 import postman.request.BodyLessRequest;
 import postman.request.JSONObjectRequest;
 import postman.response.Response;
-import proximity.sdk.entity.*;
-import proximity.sdk.exception.HttpException;
+import meetnow.sdk.entity.*;
+import meetnow.sdk.exception.HttpException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -398,7 +398,7 @@ public class SDK {
     public void getNearbyUsers(final SuccessCallback callback, final ErrorCallback errorCallback) {
         BodyLessRequest request;
 
-        request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/nearby-places/users-nearby"));
+        request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl("/nearby-places/nearby-users"));
         request.setHeader("X-Authorization", this.sessionToken);
 
         this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
@@ -467,7 +467,6 @@ public class SDK {
 
         request = new JSONObjectRequest(JSONObjectRequest.Method.DELETE, this.castUrl("/session"));
         request.setHeader("X-Authorization", this.sessionToken);
-        request.setBody(new JSONObject());
 
         postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
             @Override

@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>proximity.sdk</groupId>
-    <artifactId>proximity-api-sdk</artifactId>
+    <groupId>meetnow.sdk</groupId>
+    <artifactId>meetnow-api-sdk</artifactId>
     <version>0.1.0</version>
 
     <properties>
@@ -17,8 +17,8 @@
         <dependency>
             <groupId>postman</groupId>
             <artifactId>http-postman</artifactId>
-            <version>0.3</version>
-            <systemPath>${project.basedir}/libs/http-postman-0.3.jar</systemPath>
+            <version>0.4</version>
+            <systemPath>${project.basedir}/libs/http-postman-0.4.jar</systemPath>
             <scope>system</scope>
         </dependency>
 

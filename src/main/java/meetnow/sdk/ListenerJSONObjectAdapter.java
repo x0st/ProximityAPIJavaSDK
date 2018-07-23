@@ -1,14 +1,14 @@
-package proximity.sdk;
+package meetnow.sdk;
 
 import org.json.JSONObject;
 import postman.Client;
 import postman.response.Response;
-import proximity.sdk.entity.RefreshToken;
-import proximity.sdk.entity.Session;
-import proximity.sdk.exception.HttpException;
-import proximity.sdk.exception.UnathenticatedErrorException;
-import proximity.sdk.exception.UserNotAtPlacesException;
-import proximity.sdk.exception.ValidatorErrorException;
+import meetnow.sdk.entity.RefreshToken;
+import meetnow.sdk.entity.Session;
+import meetnow.sdk.exception.HttpException;
+import meetnow.sdk.exception.UnathenticatedErrorException;
+import meetnow.sdk.exception.UserNotAtPlacesException;
+import meetnow.sdk.exception.ValidatorErrorException;
 
 abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONObject> {
     private SDK.ErrorCallback errorCallback;

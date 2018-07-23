@@ -1,4 +1,4 @@
-package proximity.sdk.exception;
+package meetnow.sdk.exception;
 
 interface ExceptionInterface {
     public String getErrorCode();
