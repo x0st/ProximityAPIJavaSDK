@@ -9,7 +9,6 @@ import postman.request.BodyLessRequest;
 import postman.request.JSONObjectRequest;
 import postman.response.Response;
 import meetnow.sdk.entity.*;
-import meetnow.sdk.exception.HttpException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +39,8 @@ public class SDK {
         CONFIRM_CHECK_IN,
         REVOKE_FCM_TOKEN,
         REVOKE_SESSION_TOKEN,
-        SEND_SIGNAL
+        SEND_SIGNAL,
+        GET_NEARBY_USER_INFO
     }
 
     public SDK(String hostValue, String sessionTokenValue) {
@@ -611,6 +611,32 @@ public class SDK {
             @Override
             public void sessionTokenUpdated() {
                 pushWiFiNetworks(location, locationAccuracy, networks, successCallback, errorCallback);
+            }
+        }, new Client.ErrorListener() {
+            @Override
+            public void exception(PostmanException e) {
+                errorCallback.exception(e);
+            }
+        });
+    }
+
+    public void getNearbyUserInfo(final User user, final SuccessCallback successCallback, final ErrorCallback errorCallback) {
+        BodyLessRequest request;
+
+        request = new BodyLessRequest(BodyLessRequest.Method.GET, this.castUrl(String.format("/nearby-places/nearby-users/%s", user.getId())));
+        request.setHeader("X-Authorization", this.sessionToken);
+
+        this.postman.asJSONObjectAsync(request, new ListenerJSONObjectAdapter(this, errorCallback) {
+            @Override
+            public void handleSuccess(Response<JSONObject> response) {
+                User user = User.fromJSONObject(response.getBody().getJSONObject("user"));
+
+                successCallback.onSDKActionSuccess(Action.GET_NEARBY_USER_INFO, user);
+            }
+
+            @Override
+            public void sessionTokenUpdated() {
+                getNearbyUserInfo(user, successCallback, errorCallback);
             }
         }, new Client.ErrorListener() {
             @Override

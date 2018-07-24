@@ -1,6 +1,8 @@
 package meetnow.sdk;
 
 import org.json.JSONObject;
+
+import meetnow.sdk.exception.NoPlacesOfIntersectionException;
 import postman.Client;
 import postman.response.Response;
 import meetnow.sdk.entity.RefreshToken;
@@ -54,6 +56,15 @@ abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONO
      */
     private boolean isUserNotAtPlacesError(Response<JSONObject> response) {
         return response.getBody().getString("error").equals("NOT_AT_PLACES");
+    }
+
+    /**
+     *
+     * @param response
+     * @return
+     */
+    private boolean isNoPlacesOfIntersectionError(Response<JSONObject> response) {
+        return response.getBody().getString("error").equals("NO_INTERSECTED_PLACES_FOUND");
     }
 
     /**
@@ -119,6 +130,8 @@ abstract public class ListenerJSONObjectAdapter implements Client.Listener<JSONO
 
             if (isValidationError(response)) {
                 exception = new ValidatorErrorException(errorCode, response);
+            } else if (isNoPlacesOfIntersectionError(response)) {
+                exception = new NoPlacesOfIntersectionException(errorCode, response);
             } else if (isUserNotAtPlacesError(response)) {
                 exception = new UserNotAtPlacesException(errorCode, response);
             } else if (isUnauthenticatedError(response)) {
